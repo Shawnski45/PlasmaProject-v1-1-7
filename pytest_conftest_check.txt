@@ -1,0 +1,3 @@
+PYTEST CONFTST CHECK
+python_executable=C:\Users\shawng\AppData\Local\Programs\Python\Python313\python.exe
+cwd=C:\Users\shawng\CascadeProjects\PlasmaProject v1-1-7

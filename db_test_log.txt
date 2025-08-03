@@ -1,0 +1,22 @@
+Database URI: sqlite:///C:\Users\shawng\CascadeProjects\PlasmaProject v1-1-7\instance\plasma.db
+Tables found: ['customer', 'order', 'order_item', 'upload', 'user']
+
+Table: customer (showing up to 5 rows)
+No rows found.
+Total rows: 0
+
+Table: order (showing up to 5 rows)
+No rows found.
+Total rows: 0
+
+Table: order_item (showing up to 5 rows)
+No rows found.
+Total rows: 0
+
+Table: upload (showing up to 5 rows)
+No rows found.
+Total rows: 0
+
+Table: user (showing up to 5 rows)
+No rows found.
+Total rows: 0

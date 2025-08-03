@@ -1,0 +1,42 @@
+Cascade Update Report for dxf_parser.py (Version 7)
+Date: 2025-07-04
+---
+1. File Path:
+   - Updated script at C:/Users/shawng/CascadeProjects/PlasmaProject v1-1-7/app/utils/dxf_parser.py
+2. Duplicate Code Removal:
+   - Removed duplicate `config` definition in `parse_dxf` (old lines 368-379).
+   - Removed duplicate `SPLINE` block in `parse_dxf` (old lines 301-329).
+   - Removed extra `except` clauses for `POLYLINE`/`LWPOLYLINE` in `parse_dxf` (old lines 286-299).
+3. Polyline Handling (parse_dxf):
+   - Replaced `POLYLINE`/`LWPOLYLINE` block in `parse_dxf` with new code to handle 2D/3D polylines safely.
+4. Config and process_entity Preservation:
+   - Verified `config` definition at start of `parse_dxf` was not modified.
+   - Verified `SPLINE` and `POLYLINE` blocks in `process_entity` were not modified.
+5. Test Suite Check:
+   - No active test cases found in tests/test_dxf_parse_batch.py. Add or enable tests for automated validation.
+6. Other Changes:
+   - None (no other parts of the script were modified).
+7. Script Integrity:
+   - All other functions, imports, and logic preserved as original.
+8. File Stats:
+   - Total lines in updated dxf_parser.py: 812
+9. First 10 Lines of Updated File:
+# dxf_parser.py
+# This script parses DXF files to extract cut lengths, areas, weights, and preview data for Ohio Drum's quoting tool.
+# Shawn started this project March 3, 2025, on X.com, moved to Grok.com ~March 17. All code by Grok with Shawn's guidance.
+# 2025-04-04: Added pierce_count and lead_in_out_length to parsing output (ref: Shawn's request for plasma cutting accuracy)
+# 2025-04-04: Updated pierce_count to reflect continuous cut paths instead of per-entity (ref: Shawn's clarification on quoting needs)
+# 2025-04-XX: Switched to density-based weight calculation (ref: Shawn's request for smarter weight system)
+# 2025-04-12: Added 'import json' to fix F821/Pylance 'undefined name json' error in parse_dxf (Grok fix)
+
+import ezdxf  # Library for reading DXF files
+import math
+
+10. Updated POLYLINE/LWPOLYLINE Block in parse_dxf (First 5 Lines):
+elif t in ('LWPOLYLINE', 'POLYLINE'):
+    try:
+        logging.info(f"Processing {t} on layer {layer}: Starting")
+        is_3d = getattr(e, 'is_3d_polyline', False) or (t == 'POLYLINE' and getattr(e, 'is_polyface_mesh', False))
+        logging.info(f"{t} on layer {layer}: is_3d={is_3d}")
+---
+Update complete. Please test the updated script with your DXF files.

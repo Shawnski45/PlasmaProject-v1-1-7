@@ -1,0 +1,9 @@
+Cascade Update Report for dxf_parser.py (Version 6)
+Date: 2025-07-04
+---
+ERROR: The required file `dxf_parser.py` was not found at `C:\Users\shawng\CascadeProjects\PlasmaProject v1-1-7\dxf_parser.py`. Instead, it exists at `app\utils\dxf_parser.py`.
+
+Per update instructions, no changes have been made to the codebase. Please move or copy the script to the correct path and rerun the update.
+
+Update halted.
+---
