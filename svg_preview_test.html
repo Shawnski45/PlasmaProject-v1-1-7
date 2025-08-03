@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SVG Preview Centering Test</title>
+    <style>
+        body { font-family: sans-serif; background: #f9f9f9; }
+        .preview-container { display: flex; flex-wrap: wrap; gap: 32px; margin-top: 30px; }
+        .preview-box { background: #fff; border: 1px solid #ccc; box-shadow: 0 2px 8px #0001; padding: 12px; border-radius: 8px; }
+        .preview-svg { width: 120px; height: 120px; border: 1px solid #999; background: #fafafa; display: block; margin: 0 auto; }
+        .controls { margin-top: 24px; }
+    </style>
+</head>
+<body>
+    <h2>SVG Preview Centering Test Platform</h2>
+    <div class="controls">
+        <button onclick="showCase(0)">Polyline Square</button>
+        <button onclick="showCase(1)">Line Diagonal</button>
+        <button onclick="showCase(2)">Circle</button>
+        <button onclick="showCase(3)">Arc</button>
+        <button onclick="showCase(4)">Complex (All)</button>
+        <button onclick="loadLatestPreview()" style="margin-left:2em; background:#5af; color:#fff; font-weight:bold">Reload Latest DXF Preview</button>
+        <span style="margin-left:2em; font-weight:bold">Paste preview JSON:</span>
+        <textarea id="jsonInput" rows="4" cols="60" placeholder="Paste preview JSON here..."></textarea>
+        <button onclick="pasteAndShow()">Render JSON</button>
+        <span style="margin-left:2em; font-weight:bold">or Load .json file:</span>
+        <input type="file" id="fileInput" accept=".json" onchange="loadFile(event)" />
+    </div>
+    <div class="preview-container">
+        <div class="preview-box">
+            <svg id="preview_0" class="preview-svg" width="120" height="120"></svg>
+            <div style="text-align:center">Test SVG</div>
+        </div>
+    </div>
+    <div id="preview_status" style="margin:16px 0 0 0; color:#c00; font-weight:bold;"></div>
+    <script>
+// --- Mock preview data cases ---
+const previewCases = [
+    // Polyline square
+    [{type: 'polyline', points: [[-40, -40], [40, -40], [40, 40], [-40, 40], [-40, -40]]}],
+    // Line diagonal
+    [{type: 'line', start: [-60, -60], end: [60, 60]}],
+    // Circle
+    [{type: 'circle', center: [0, 0], radius: 50}],
+    // Arc
+    [{type: 'arc', center: [0, 0], radius: 50, start_angle: 0, end_angle: 270}],
+    // Complex (all)
+    [
+        {type: 'polyline', points: [[-40, -40], [40, -40], [40, 40], [-40, 40], [-40, -40]]},
+        {type: 'line', start: [-60, -60], end: [60, 60]},
+        {type: 'circle', center: [0, 0], radius: 50},
+        {type: 'arc', center: [0, 0], radius: 50, start_angle: 0, end_angle: 270}
+    ]
+];
+
+// --- renderPreviews function (latest logic from your app) ---
+function renderPreviews(svgs = document.querySelectorAll('.preview-svg'), previewDataArr = null) {
+    const N = 1; // Only one SVG in this test
+    function renderSVG(svg, previewData) {
+        if (svg.innerHTML) svg.innerHTML = '';
+        let statusDiv = document.getElementById('preview_status');
+        statusDiv.style.color = '#c00';
+        statusDiv.textContent = '';
+        try {
+            const preview = { id: svg.id, data: previewData };
+            if (!preview || !Array.isArray(preview.data)) {
+                statusDiv.textContent = 'No preview data or data is not an array.';
+                return;
+            }
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            let typeCounts = {};
+            let unknownTypes = new Set();
+            let splineCount = 0;
+            preview.data.forEach(entity => {
+                typeCounts[entity.type] = (typeCounts[entity.type] || 0) + 1;
+                if (entity.type === 'lwpolyline' || entity.type === 'polyline') {
+                    entity.points.forEach(([x, y]) => {
+                        minX = Math.min(minX, x); minY = Math.min(minY, y);
+                        maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
+                    });
+                } else if (entity.type === 'line') {
+                    minX = Math.min(minX, entity.start[0], entity.end[0]);
+                    minY = Math.min(minY, entity.start[1], entity.end[1]);
+                    maxX = Math.max(maxX, entity.start[0], entity.end[0]);
+                    maxY = Math.max(maxY, entity.start[1], entity.end[1]);
+                } else if (entity.type === 'circle' || entity.type === 'arc') {
+                    minX = Math.min(minX, entity.center[0] - entity.radius);
+                    minY = Math.min(minY, entity.center[1] - entity.radius);
+                    maxX = Math.max(maxX, entity.center[0] + entity.radius);
+                    maxY = Math.max(maxY, entity.center[1] + entity.radius);
+                } else if (entity.type === 'spline') {
+                    splineCount++;
+                    if (Array.isArray(entity.polyline)) {
+                        entity.polyline.forEach(([x, y]) => {
+                            minX = Math.min(minX, x); minY = Math.min(minY, y);
+                            maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
+                        });
+                    }
+                } else {
+                    unknownTypes.add(entity.type);
+                }
+            });
+            const width = maxX - minX || 1;
+            const height = maxY - minY || 1;
+            const padding = 0.1; // 10% padding
+            const paddedWidth = width * (1 + 2 * padding);
+            const paddedHeight = height * (1 + 2 * padding);
+            const centerX = (minX + maxX) / 2;
+            const centerY = (minY + maxY) / 2;
+            const scale = Math.min(svg.width.baseVal.value / paddedWidth, svg.height.baseVal.value / paddedHeight);
+            const offsetX = (svg.width.baseVal.value - paddedWidth * scale) / 2;
+            const offsetY = (svg.height.baseVal.value - paddedHeight * scale) / 2;
+            const viewBox = `${minX - padding * width} ${minY - padding * height} ${paddedWidth} ${paddedHeight}`;
+            svg.setAttribute('viewBox', viewBox);
+            // Draw guides: bounding box (red), viewBox (blue)
+            let guides = `
+                <rect x="${minX}" y="${minY}" width="${width}" height="${height}" fill="none" stroke="red" stroke-width="0.7" stroke-dasharray="3,2"/>
+                <rect x="${minX - padding * width}" y="${minY - padding * height}" width="${paddedWidth}" height="${paddedHeight}" fill="none" stroke="blue" stroke-width="0.7" stroke-dasharray="4,2"/>
+            `;
+            const paths = preview.data.map(entity => {
+                let d = '';
+                if (entity.type === 'lwpolyline' || entity.type === 'polyline') {
+                    d = entity.points.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${(x - centerX) * scale + offsetX} ${svg.height.baseVal.value - ((y - centerY) * scale + offsetY)}`).join(' ') + (entity.points.length > 2 && entity.points[0][0] === entity.points[entity.points.length - 1][0] && entity.points[0][1] === entity.points[entity.points.length - 1][1] ? ' Z' : '');
+                } else if (entity.type === 'line') {
+                    d = `M ${(entity.start[0] - centerX) * scale + offsetX} ${svg.height.baseVal.value - ((entity.start[1] - centerY) * scale + offsetY)} L ${(entity.end[0] - centerX) * scale + offsetX} ${svg.height.baseVal.value - ((entity.end[1] - centerY) * scale + offsetY)}`;
+                } else if (entity.type === 'circle') {
+                    d = `M ${(entity.center[0] - centerX) * scale + offsetX} ${svg.height.baseVal.value - ((entity.center[1] - centerY) * scale + offsetY)} m -${entity.radius * scale},0 a ${entity.radius * scale},${entity.radius * scale} 0 1,0 ${2 * entity.radius * scale},0 a ${entity.radius * scale},${entity.radius * scale} 0 1,0 -${2 * entity.radius * scale},0`;
+                } else if (entity.type === 'arc') {
+                    const startX = (entity.center[0] + entity.radius * Math.cos(entity.start_angle * Math.PI / 180) - centerX) * scale + offsetX;
+                    const startY = (entity.center[1] + entity.radius * Math.sin(entity.start_angle * Math.PI / 180) - centerY) * scale + offsetY;
+                    const endX = (entity.center[0] + entity.radius * Math.cos(entity.end_angle * Math.PI / 180) - centerX) * scale + offsetX;
+                    const endY = (entity.center[1] + entity.radius * Math.sin(entity.end_angle * Math.PI / 180) - centerY) * scale + offsetY;
+                    const largeArc = Math.abs(entity.end_angle - entity.start_angle) > 180 ? 1 : 0;
+                    d = `M ${startX} ${svg.height.baseVal.value - (startY + offsetY)} A ${entity.radius * scale},${entity.radius * scale} 0 ${largeArc} 0 ${endX} ${svg.height.baseVal.value - (endY + offsetY)}`;
+                } else if (entity.type === 'spline') {
+                    // Draw polyline approximation if present
+                    if (Array.isArray(entity.polyline)) {
+                        d = entity.polyline.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${(x - centerX) * scale + offsetX} ${svg.height.baseVal.value - ((y - centerY) * scale + offsetY)}`).join(' ');
+                    } else {
+                        return '';
+                    }
+                } else {
+                    // Unknown type, skip
+                    return '';
+                }
+                return `<path d="${d}" stroke="black" fill="none" stroke-width="0.5" vector-effect="non-scaling-stroke"/>`;
+            }).join('');
+            svg.innerHTML = guides + `<g transform="translate(${offsetX}, ${offsetY}) scale(${scale}) translate(${centerX}, ${centerY}) translate(-${centerX}, -${centerY})">${paths}</g>`;
+            // Show summary
+            let msg = `Entities: ${preview.data.length}. Types: ` + Object.keys(typeCounts).map(t => `${t} (${typeCounts[t]})`).join(', ');
+            if (splineCount > 0) msg += `. SPLINE entities rendered as polylines: ${splineCount}.`;
+            if (unknownTypes.size > 0) {
+                statusDiv.style.color = '#e67e22';
+                msg += ` Skipped unknown types: ${Array.from(unknownTypes).join(', ')}`;
+            }
+            statusDiv.textContent = msg;
+        } catch (err) {
+            statusDiv.style.color = '#c00';
+            statusDiv.textContent = 'Error rendering preview: ' + err;
+        }
+    }
+    for (let i = 0; i < svgs.length && i < N; i++) {
+        renderSVG(svgs[i], previewDataArr || previewCases[0]);
+    }
+}
+
+function showCase(idx) {
+    const svg = document.getElementById('preview_0');
+    renderPreviews([svg], previewCases[idx]);
+}
+function pasteAndShow() {
+    const svg = document.getElementById('preview_0');
+    let statusDiv = document.getElementById('preview_status');
+    statusDiv.textContent = '';
+    let val = document.getElementById('jsonInput').value;
+    try {
+        let arr = JSON.parse(val);
+        renderPreviews([svg], arr);
+    } catch(e) {
+        statusDiv.style.color = '#c00';
+        statusDiv.textContent = 'Invalid JSON: ' + e;
+    }
+}
+function loadFile(event) {
+    const svg = document.getElementById('preview_0');
+    let statusDiv = document.getElementById('preview_status');
+    statusDiv.textContent = '';
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            let arr = JSON.parse(e.target.result);
+            renderPreviews([svg], arr);
+        } catch (err) {
+            statusDiv.style.color = '#c00';
+            statusDiv.textContent = 'Invalid JSON in file: ' + err;
+        }
+    };
+    reader.readAsText(file);
+}
+// --- Load preview from latest_preview.json and render it ---
+function loadLatestPreview() {
+    const svg = document.getElementById('preview_0');
+    let statusDiv = document.getElementById('preview_status');
+    statusDiv.textContent = 'Loading latest_preview.json...';
+    fetch('latest_preview.json')
+        .then(resp => {
+            if (!resp.ok) throw new Error('Could not load latest_preview.json');
+            return resp.json();
+        })
+        .then(entitiesArr => {
+            // Wrap in mock cart item structure as expected by production UI
+            const mockItem = {
+                cart_uid: 'test_item',
+                part_number: 'Test Part',
+                preview: entitiesArr,
+                unit_price: 0,
+                quantity: 1,
+                material: '',
+                thickness: ''
+            };
+            renderPreviews([svg], mockItem);
+        })
+        .catch(e => {
+            statusDiv.style.color = '#c00';
+            statusDiv.textContent = 'Error loading latest_preview.json: ' + e;
+        });
+}
+// Initial render: try to load latest_preview.json
+window.addEventListener('DOMContentLoaded', function() {
+    loadLatestPreview();
+});
+    </script>
+</body>
+</html>

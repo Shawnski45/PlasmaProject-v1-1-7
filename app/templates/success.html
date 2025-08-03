@@ -1,0 +1,77 @@
+<!-- templates/success.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Roboto', sans-serif; margin: 20px; background-color: #ECF0F1; color: #34495E; }
+        .container { max-width: 800px; margin: 0 auto; background-color: #FFFFFF; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); }
+        h1 { font-size: 24px; font-weight: 700; color: #2C3E50; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #E0E0E0; padding: 8px; text-align: left; }
+        th { background-color: #D5DBDB; }
+        .total { text-align: right; font-weight: 700; font-size: 18px; }
+        .new-order-btn { padding: 12px 24px; background-color: #27AE60; color: #FFFFFF; border: none; border-radius: 5px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-block; margin-top: 20px; }
+        .new-order-btn:hover { background-color: #219653; }
+        .flash-success { color: #27AE60; }
+        .flash-error { color: #E74C3C; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Order Confirmation</h1>
+
+        {% if pending %}
+            <p class="flash-success">Thank you! Your payment is being processed.</p>
+            <p>We have received your order and are waiting for payment confirmation from Stripe. This usually takes a few moments. You will receive a confirmation email as soon as your payment is complete.</p>
+            <p>If you have any questions, please contact <a href="mailto:questions@plasmatableburnouts.com">questions@plasmatableburnouts.com</a>.</p>
+            <a href="/clear" class="new-order-btn">Return to Home</a>
+        {% else %}
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <p class="flash-{{ category }}">{{ message }}</p>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <p>Order ID: {{ order.id }}</p>
+            <p>Email: {{ order.email }}</p>
+            <p>Phone: {{ order.phone }}</p>
+
+            <table>
+                <tr>
+                    <th>Part Name</th>
+                    <th>Quantity</th>
+                    <th>Material</th>
+                    <th>Thickness</th>
+                    <th>Unit Price</th>
+                    <th>Subtotal</th>
+                </tr>
+                {% for item in order.items %}
+                <tr>
+                    <td>{{ item.part_number }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.material }}</td>
+                    <td>{{ item.thickness }}"</td>
+                    <td>${{ "%0.2f" % item.unit_price }}</td>
+                    <td>${{ "%0.2f" % item.cost_per_part }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+
+            <div class="total">
+                Total: ${{ "%0.2f" % order.total }}
+            </div>
+
+            <p>A receipt has been sent to your email. Our team will contact you soon to coordinate shipping. If you have any questions, you can reach us at <a href="mailto:questions@plasmatableburnouts.com">questions@plasmatableburnouts.com</a>.</p>
+
+            <a href="{{ url_for('customer_index') }}" class="new-order-btn">Start a New Order Now</a>
+        {% endif %}
+    </div>
+</body>
+</html>

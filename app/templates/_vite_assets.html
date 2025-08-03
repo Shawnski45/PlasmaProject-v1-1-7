@@ -1,0 +1,13 @@
+{# Jinja macro to load hashed Vite assets from manifest.json #}
+{% macro vite_assets(manifest_path, entry) %}
+    {% set manifest = namespace(data={}) %}
+    {% with open(manifest_path) as f %}
+        {% set manifest.data = cycler.loads(f.read()) %}
+    {% endwith %}
+    {% set js_file = manifest.data[entry]['file'] %}
+    {% set css_files = manifest.data[entry].get('css', []) %}
+    {% for css in css_files %}
+        <link href="{{ url_for('static', filename='react-build/' ~ css) }}" rel="stylesheet">
+    {% endfor %}
+    <script type="module" src="{{ url_for('static', filename='react-build/' ~ js_file) }}"></script>
+{% endmacro %}

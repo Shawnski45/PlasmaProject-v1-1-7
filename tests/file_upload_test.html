@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>File Upload Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .test-container { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { color: green; }
+        .error { color: red; }
+        #drop-zone {
+            width: 100%;
+            height: 200px;
+            border: 2px dashed #ccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+        }
+        #drop-zone.highlight {
+            border-color: #0058ca;
+            background-color: #e6f0ff;
+        }
+        #testResults {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #eee;
+            min-height: 100px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>File Upload Test</h1>
+    
+    <div class="test-container">
+        <h2>Test 1: Manual File Upload</h2>
+        <input type="file" id="fileInput" multiple accept=".dxf,.svg,.ai,.step,.stp,.iges,.igs,.sldprt">
+        <button onclick="testManualUpload()">Test Manual Upload</button>
+        <div id="manualTestResult"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>Test 2: Drag and Drop</h2>
+        <div id="drop-zone">
+            <div>Drag and drop files here or click to select files</div>
+        </div>
+        <div id="dropTestResult"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>Test 3: Programmatic Upload</h2>
+        <button onclick="testProgrammaticUpload()">Run Programmatic Test</button>
+        <div id="programmaticTestResult"></div>
+    </div>
+
+    <h2>Test Results</h2>
+    <div id="testResults">Test results will appear here...</div>
+
+    <script>
+        // Log function to display test results
+        function log(message, isError = false) {
+            const resultDiv = document.getElementById('testResults');
+            const timestamp = new Date().toISOString().substr(11, 12);
+            const logEntry = document.createElement('div');
+            logEntry.className = isError ? 'error' : '';
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            resultDiv.prepend(logEntry);
+            console.log(message);
+            return message;
+        }
+
+        // Test 1: Manual File Upload
+        async function testManualUpload() {
+            const fileInput = document.getElementById('fileInput');
+            const resultDiv = document.getElementById('manualTestResult');
+            
+            if (!fileInput.files || fileInput.files.length === 0) {
+                resultDiv.innerHTML = '<span class="error">Please select a file first</span>';
+                return;
+            }
+
+            resultDiv.textContent = 'Uploading...';
+            
+            try {
+                await uploadFiles(fileInput.files);
+                resultDiv.innerHTML = '<span class="success">✓ Manual upload successful!</span>';
+                log('Manual upload test passed');
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">Error: ${error.message}</span>`;
+                log(`Manual upload test failed: ${error.message}`, true);
+            }
+        }
+
+        // Test 2: Drag and Drop
+        const dropZone = document.getElementById('drop-zone');
+        
+        // Prevent default drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // Highlight drop zone when item is dragged over it
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            dropZone.classList.add('highlight');
+        }
+
+        function unhighlight() {
+            dropZone.classList.remove('highlight');
+        }
+
+        // Handle dropped files
+        dropZone.addEventListener('drop', handleDrop, false);
+        dropZone.addEventListener('click', () => document.getElementById('fileInput').click());
+
+        async function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            const resultDiv = document.getElementById('dropTestResult');
+            
+            if (files.length === 0) return;
+            
+            resultDiv.textContent = 'Uploading...';
+            
+            try {
+                await uploadFiles(files);
+                resultDiv.innerHTML = '<span class="success">✓ Drop upload successful!</span>';
+                log('Drag and drop test passed');
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">Error: ${error.message}</span>`;
+                log(`Drag and drop test failed: ${error.message}`, true);
+            }
+        }
+
+        // Test 3: Programmatic Upload
+        async function testProgrammaticUpload() {
+            const resultDiv = document.getElementById('programmaticTestResult');
+            resultDiv.textContent = 'Running test...';
+            
+            try {
+                // Create a test file
+                const testFile = await createTestFile();
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(testFile);
+                
+                // Test with the created file
+                await uploadFiles(dataTransfer.files);
+                resultDiv.innerHTML = '<span class="success">✓ Programmatic upload test passed!</span>';
+                log('Programmatic upload test passed');
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">Programmatic upload test failed: ${error.message}</span>`;
+                log(`Programmatic upload test failed: ${error.message}`, true);
+            }
+        }
+
+        // Helper function to create a test file
+        function createTestFile() {
+            // Simple DXF content for testing
+            const dxfContent = `0
+SECTION
+2
+HEADER
+9
+$ACADVER
+1
+AC1009
+0
+ENDSEC
+0
+SECTION
+2
+ENTITIES
+0
+LINE
+8
+0
+10
+0.0
+20
+0.0
+30
+0.0
+11
+10.0
+21
+10.0
+31
+0.0
+0
+ENDSEC
+0
+EOF`;
+            
+            return new File([dxfContent], 'test_shape.dxf', { type: 'application/dxf' });
+        }
+
+        // Upload files to the server
+        async function uploadFiles(files) {
+            if (!files || files.length === 0) {
+                throw new Error('No files selected');
+            }
+
+            const formData = new FormData();
+            for (let i = 0; i < files.length; i++) {
+                formData.append('files', files[i]);
+            }
+
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                const error = await response.text();
+                throw new Error(`Upload failed: ${error}`);
+            }
+
+            return await response.json();
+        }
+
+        // Expose functions for manual testing
+        window.uploadFiles = uploadFiles;
+        window.testManualUpload = testManualUpload;
+        window.testProgrammaticUpload = testProgrammaticUpload;
+    </script>
+</body>
+</html>

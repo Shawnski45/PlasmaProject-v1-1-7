@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CNC Plasma Table - Instant Quote</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body { font-family: 'Roboto', sans-serif; }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <div id="root"></div>
+  <script type="text/babel">
+    function LandingPage() {
+      return (
+        <>
+          {/* Header */}
+          <header className="w-full py-4 bg-white shadow">
+            <div className="container mx-auto flex justify-between items-center px-4">
+              <span className="text-2xl font-bold text-blue-700">CNC Plasma Table</span>
+              <a href="/quote" className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">Instant Quote</a>
+            </div>
+          </header>
+
+          {/* Hero Section with Full-width Background */}
+          <section
+            className="w-full h-96 bg-cover bg-center flex items-center justify-center relative"
+            style={{ backgroundImage: 'url(/static/assets/images/hero-bg.jpg)' }}
+            aria-label="CNC plasma cutting table in action"
+          >
+            <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+            <div className="relative z-10 text-center">
+              <h1 className="text-4xl md:text-5xl font-extrabold text-white drop-shadow-lg">Your CNC Plasma Table Partner</h1>
+              <p className="mt-4 text-xl md:text-2xl text-white drop-shadow">Upload your DXF files and get instant quotes for your custom parts.</p>
+              <a
+                href="/quote"
+                className="mt-8 inline-block px-8 py-3 bg-blue-600 text-white text-lg rounded-lg shadow-lg hover:bg-blue-700 transition font-semibold"
+              >
+                Instant Quote
+              </a>
+            </div>
+          </section>
+
+          {/* Placeholder for additional sections */}
+          <main className="container mx-auto px-4 mt-12">
+            {/* Add more landing page sections here as needed */}
+            <section className="my-12 text-center">
+              <h2 className="text-2xl font-bold mb-4">How It Works</h2>
+              <ol className="flex flex-col md:flex-row justify-center items-center gap-8">
+                <li className="flex-1 bg-white rounded-lg shadow p-6">
+                  <span className="block text-blue-600 text-3xl font-bold mb-2">1</span>
+                  <p>Upload your DXF file</p>
+                </li>
+                <li className="flex-1 bg-white rounded-lg shadow p-6">
+                  <span className="block text-blue-600 text-3xl font-bold mb-2">2</span>
+                  <p>Get an instant quote</p>
+                </li>
+                <li className="flex-1 bg-white rounded-lg shadow p-6">
+                  <span className="block text-blue-600 text-3xl font-bold mb-2">3</span>
+                  <p>Place your order</p>
+                </li>
+              </ol>
+            </section>
+          </main>
+
+          {/* Footer */}
+          <footer className="w-full py-6 bg-gray-800 text-gray-200 text-center mt-12">
+            &copy; {new Date().getFullYear()} CNC Plasma Table. All rights reserved.
+          </footer>
+        </>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<LandingPage />);
+  </script>
+</body>
+</html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plasmatableburnouts.com - Instant Plasma Cutting Quotes</title>
+  <meta name="description" content="Get instant plasma cutting quotes for thick steel plates. Upload DXF files and receive fast, accurate pricing to win more bids.">
+  <meta name="keywords" content="instant plasma cutting quotes, fast steel plate quoting, DXF quoting tool, plasma cutting service, thick plate quoting">
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.18.9/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const App = () => (
+      <div className="bg-gray-900 text-gray-100 font-inter">
+        {/* Header */}
+        <header className="bg-gray-800 py-12 text-center">
+          <h1 className="text-4xl md:text-5xl font-roboto-slab text-red-600">
+            Win Jobs with Instant Plasma Cutting Quotes
+          </h1>
+          <p className="mt-4 text-lg md:text-xl text-gray-300">
+            Upload DXF files for fast steel plate quoting and get parts delivered quickly.
+          </p>
+          <a
+            href="/quoting"
+            className="mt-6 inline-block bg-orange-500 text-white px-8 py-3 rounded-lg text-lg hover:bg-orange-600"
+          >
+            Instant Quote
+          </a>
+        </header>
+
+        {/* Hero Image */}
+        <section 
+          className="w-full h-96 bg-cover bg-center" 
+          style={{ backgroundImage: 'url(https://source.unsplash.com/1600x900/?plasma-cutting,industrial)' }} // Replace with '/assets/images/cutting-table.jpg' or CDN URL
+          aria-label="CNC plasma cutting table in action"
+        >
+        </section>
+
+        {/* Problem */}
+        <section className="py-12 px-4 text-center">
+          <h2 className="text-3xl font-roboto-slab text-gray-100">Slow Quotes Cost You Jobs</h2>
+          <p className="mt-4 text-lg text-gray-300 max-w-2xl mx-auto">
+            In today’s competitive economy, waiting for pricing delays bids and risks losing contracts. You need fast steel plate quoting to stay ahead.
+          </p>
+        </section>
+
+        {/* Guide */}
+        <section 
+          className="bg-gray-800 py-12 px-4 bg-cover bg-center" 
+          style={{ backgroundImage: 'url(https://source.unsplash.com/1600x900/?steel,industrial)' }} // Replace with '/assets/images/cut-parts.jpg' or CDN URL
+          aria-label="Finished steel parts after plasma cutting"
+        >
+          <h2 className="text-3xl font-roboto-slab text-center text-gray-100">Your Guide to Winning Bids</h2>
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="text-center bg-gray-900 bg-opacity-75 p-4 rounded-lg">
+              <h3 className="text-xl font-roboto-slab text-orange-500">1. Upload DXF</h3>
+              <p className="mt-2 text-gray-300">Drop your DXF files into our quoting tool in seconds.</p>
+            </div>
+            <div className="text-center bg-gray-900 bg-opacity-75 p-4 rounded-lg">
+              <h3 className="text-xl font-roboto-slab text-orange-500">2. Get Instant Quote</h3>
+              <p className="mt-2 text-gray-300">Receive accurate pricing instantly with our DXF quoting tool.</p>
+            </div>
+            <div className="text-center bg-gray-900 bg-opacity-75 p-4 rounded-lg">
+              <h3 className="text-xl font-roboto-slab text-orange-500">3. Win Bids & Get Parts</h3>
+              <p className="mt-2 text-gray-300">Secure jobs and receive high-quality parts fast.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* About Us (Main) */}
+        <section className="py-12 px-4 text-center">
+          <h2 className="text-3xl font-roboto-slab text-gray-100">About Plasmatableburnouts.com</h2>
+          <p className="mt-4 text-lg text-gray-300 max-w-3xl mx-auto">
+            At Plasmatableburnouts.com, we understand the pressure of assembling bids for thick plate plasma cutting. Our instant plasma cutting quotes simplify your process, helping you win more jobs. We honor pricing for 30 days, adjusting only for steel prices if your job is won later, ensuring fairness and reliability.
+          </p>
+        </section>
+
+        {/* Success */}
+        <section className="bg-gray-800 py-12 px-4 text-center">
+          <h2 className="text-3xl font-roboto-slab text-gray-100">Stay Competitive, Deliver On Time</h2>
+          <p className="mt-4 text-lg text-gray-300 max-w-2xl mx-auto">
+            Our plasma cutting service empowers you to secure contracts and deliver projects with confidence using our fast DXF quoting tool.
+          </p>
+          <a
+            href="/quoting"
+            className="mt-6 inline-block bg-red-600 text-white px-8 py-3 rounded-lg text-lg hover:bg-red-700"
+          >
+            Instant Quote
+          </a>
+        </section>
+
+        {/* About Ohio Drum */}
+        <section className="py-8 px-4 text-center bg-gray-800">
+          <h2 className="text-2xl font-roboto-slab text-gray-100">Advanced Manufacturing with Ohio Drum</h2>
+          <p className="mt-4 text-lg text-gray-300 max-w-3xl mx-auto">
+            Need forming, welding, or grinding? Our plasma cutting service is powered by <a href="https://www.ohiodrum.com" className="text-orange-500 hover:underline">Ohio Drum</a>, experts in custom plate production, including rolling and forming. Send a drawing to <a href="mailto:shawn@ohiodrum.com" className="text-orange-500 hover:underline">shawn@ohiodrum.com</a> for advanced manufacturing quotes.
+          </p>
+        </section>
+
+        {/* Footer */}
+        <footer className="bg-gray-800 py-6 text-center text-gray-400">
+          <p>© 2025 Plasmatableburnouts.com. All rights reserved.</p>
+          <a href="/contact" className="text-orange-500 hover:underline">Contact Us</a>
+        </footer>
+      </div>
+    );
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>

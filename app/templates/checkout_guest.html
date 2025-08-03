@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guest Checkout - Plasma Table Burnouts</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Roboto', sans-serif; margin: 20px; background-color: #ECF0F1; color: #34495E; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #FFFFFF; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); }
+        h1 { font-size: 24px; font-weight: 700; color: #2C3E50; text-align: center; }
+        form { display: flex; flex-direction: column; gap: 10px; }
+        label { font-weight: 700; }
+        input { padding: 8px; border: 1px solid #BDC3C7; border-radius: 4px; font-size: 16px; }
+        button { padding: 10px; background-color: #27AE60; color: #FFFFFF; border: none; border-radius: 5px; font-weight: 700; cursor: pointer; }
+        button:hover { background-color: #219653; }
+        #payment-message { color: #E74C3C; margin-top: 10px; }
+        .processing { text-align: center; margin-top: 20px; }
+        .stripe-notice { text-align: center; margin: 10px 0; color: #27AE60; }
+        .flash-success { color: #27AE60; }
+        .flash-error { color: #E74C3C; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Guest Checkout</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <p class="flash-{{ category }}">{{ message }}</p>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <p>Total: ${{ session.get('order_total', 0) | round(2) }}</p>
+        <form id="guest-checkout-form" method="POST">
+            <label for="company_name">Company Name (Optional)</label>
+            <input type="text" id="company_name" name="company_name">
+            <label for="first_name">First Name</label>
+            <input type="text" id="first_name" name="first_name" required>
+            <label for="last_name">Last Name</label>
+            <input type="text" id="last_name" name="last_name" required>
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required>
+            <label for="phone">Phone (10 digits)</label>
+            <input type="tel" id="phone" name="phone" pattern="[0-9]{10}" required>
+            <button type="submit">Proceed to Payment</button>
+            <div id="payment-message"></div>
+        </form>
+        <div class="stripe-notice">We use Stripe, a trusted credit card processor, to securely handle your payment.</div>
+        <div id="processing" class="processing" style="display: none;">Redirecting to Stripe...</div>
+    </div>
+
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+      window.STRIPE_PUBLIC_KEY = '{{ STRIPE_PUBLIC_KEY }}';
+    </script>
+    <script src="{{ url_for('static', filename='js/guest_checkout.js') }}"></script>
+</body>
+</html>

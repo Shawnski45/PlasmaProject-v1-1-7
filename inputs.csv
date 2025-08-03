@@ -1,0 +1,21 @@
+parameter,value,unit
+direct_labor_rate,25,$/hour
+machine_rate_per_min,1.18,$/min
+cut_speed_0.25,75,in/min
+cut_speed_1.0,45,in/min
+order_setup_time,15,min
+thickness_changeover_time,15,min
+plate_change_time,10,min
+cleanup_assembly_time,15,min
+steel_cost_per_lb,1.4,$/lb
+kerf_thickness,0.05,in
+skeleton_thickness,0.1,in
+margin,0.5,unitless
+pierce_time,1.5,sec  # New: Time per pierce in seconds
+travel_speed,200,in/min  # New: Speed for non-cutting travel between cuts
+cut_speed_0.375,60.0,in/min
+cut_speed_0.75,40.0,in/min
+cut_speed_1.0,25.0,in/min
+material_efficiency,0.9,unitless
+cleanup_assembly_time_thick,45.0,sec
+cleanup_assembly_time_thin,15.0,sec

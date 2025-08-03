@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Details - Plasma Table Burnouts</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Roboto', sans-serif; margin: 0; padding: 20px; background-color: #F4F6F8; color: #2C3E50; }
+        .container { max-width: 800px; margin: auto; }
+        h2 { text-align: center; }
+        .order-card { background: #FFFFFF; border: 1px solid #E0E0E0; border-radius: 8px; padding: 15px; margin-bottom: 10px; }
+        .part-card { background: #F9F9F9; border: 1px solid #E0E0E0; border-radius: 8px; padding: 10px; margin: 10px 0; }
+        .preview-canvas { width: 80px; height: 80px; border: 1px solid #E0E0E0; margin-right: 10px; }
+        a { color: #3498DB; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .flash-error { color: #E74C3C; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #E0E0E0; padding: 8px; text-align: left; }
+        th { background-color: #F4F6F8; }
+        .total { font-weight: 700; margin-top: 10px; }
+        .reorder-btn { display: inline-block; padding: 8px 16px; background-color: #27AE60; color: #FFFFFF; border-radius: 5px; text-decoration: none; }
+        .reorder-btn:hover { background-color: #219653; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Order #{{ order.id }}</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <p class="flash-{{ category }}">{{ message }}</p>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <div class="order-card">
+            <p>Email: {{ order.email }}</p>
+            <p>Phone: {{ order.phone }}</p>
+            <p>Purchase Date: {{ order.local_purchase_date.strftime('%Y-%m-%d %I:%M:%S %p') }}</p>
+            <h3>Items</h3>
+            <table>
+                <tr>
+                    <th>Preview</th>
+                    <th>Part Name</th>
+                    <th>Quantity</th>
+                    <th>Material</th>
+                    <th>Thickness</th>
+                    <th>Unit Price</th>
+                    <th>Subtotal</th>
+                </tr>
+                {% for item in order.items %}
+                <tr>
+                    <td><canvas class="preview-canvas" id="preview_{{ item.part_number }}" width="80" height="80"></canvas></td>
+                    <td>{{ item.part_number }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.material }}</td>
+                    <td>{{ item.thickness }}"</td>
+                    <td>${{ "%0.2f" % item.unit_price }}</td>
+                    <td>${{ "%0.2f" % item.cost_per_part }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            <div class="total">Total: ${{ "%0.2f" % order.total }}</div>
+            <a href="{{ url_for('main.reorder', order_id=order.id) }}" class="reorder-btn">Reorder Now</a>
+            <p><a href="{{ url_for('main.order_history') }}">Back to Order History</a></p>
+        </div>
+    </div>
+    <script id="preview-data" type="application/json">
+        {{ previews | tojson | safe }}
+    </script>
+    <script>
+        function renderPreviews() {
+            try {
+                const previewElement = document.getElementById('preview-data');
+                if (!previewElement) {
+                    console.error('Preview data element not found');
+                    return;
+                }
+                const previews = JSON.parse(previewElement.textContent);
+                if (!Array.isArray(previews)) {
+                    console.error('Previews is not an array:', previews);
+                    return;
+                }
+                previews.forEach(preview => {
+                    const canvas = document.getElementById(preview.id);
+                    if (!canvas) {
+                        console.warn('Canvas not found for preview:', preview.id);
+                        return;
+                    }
+                    const ctx = canvas.getContext('2d');
+                    const width = (preview.gross_max_x - preview.gross_min_x) || 1;
+                    const height = (preview.gross_max_y - preview.gross_min_y) || 1;
+                    const scale = Math.min(80 / width, 80 / height);
+                    ctx.translate(40, 40);
+                    ctx.scale(scale, -scale);
+                    ctx.translate(-preview.gross_min_x - width / 2, -preview.gross_min_y - height / 2);
+                    ctx.strokeStyle = 'black';
+                    ctx.lineWidth = 1 / scale;
+                    let entities = preview.preview;
+                    if (typeof entities === 'string') {
+                        try {
+                            entities = JSON.parse(entities);
+                        } catch (e) {
+                            console.error('Error parsing preview entities:', e);
+                            return;
+                        }
+                    }
+                    if (!Array.isArray(entities)) {
+                        console.warn('Entities is not an array for preview:', preview.id);
+                        return;
+                    }
+                    entities.forEach(entity => {
+                        ctx.beginPath();
+                        if (entity.type === 'line') {
+                            ctx.moveTo(entity.start[0], entity.start[1]);
+                            ctx.lineTo(entity.end[0], entity.end[1]);
+                        } else if (entity.type === 'arc') {
+                            ctx.arc(entity.center[0], entity.center[1], entity.radius,
+                                    entity.start_angle * Math.PI / 180, entity.end_angle * Math.PI / 180);
+                        } else if (entity.type === 'circle') {
+                            ctx.arc(entity.center[0], entity.center[1], entity.radius, 0, 2 * Math.PI);
+                        }
+                        ctx.stroke();
+                    });
+                });
+            } catch (err) {
+                console.error('Error rendering DXF previews:', err);
+            }
+        }
+        window.onload = renderPreviews;
+    </script>
+</body>
+</html>

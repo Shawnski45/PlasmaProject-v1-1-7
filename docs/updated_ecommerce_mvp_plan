@@ -1,0 +1,143 @@
+E-commerce MVP Plan for app.plasmatableburnouts.com
+Objective
+Develop a minimum viable product (MVP) for an online quoting and ordering system for plasma table cutouts, targeting small businesses and hobbyists.
+Technology Stack
+
+Backend: Flask with MongoDB Atlas, Firebase Authentication, Stripe
+Frontend: React with Tailwind CSS
+Tools: VS Code with Cascade, Git for version control
+
+Development Phases
+Phase 1: Setup and Infrastructure
+
+Status: Completed
+Tasks:
+Configure Flask app environment.
+Set up MongoDB Atlas and Firebase Authentication with credentials from .env.
+Integrate Stripe API keys.
+Test DXF parsing with dxf_parser.py (Completed: 17 files parsed successfully).
+
+
+Milestone: Environment ready, basic parsing tested (Achieved: July 14, 2025).
+
+Phase 2: Core Functionality
+
+Status: In Progress
+Tasks:
+Implement costing.py for price calculation based on material and thickness.
+Develop cart management with MongoDB storage.
+Test with at least 5 DXF samples (Expanded to 17 samples).
+
+
+Milestone: Costing and cart functional (Target: Next test cycle).
+
+Phase 3: UI/UX Development
+
+Status: Not Started
+Tasks:
+Build React frontend with Tailwind CSS for upload, quote, and checkout screens.
+Rollout Step: Implement Checkout Process
+Flow Diagram:[Start: User Visits app.plasmatableburnouts.com]
+    |
+    v
+[Guest or Authenticated Entry]
+    |
+    +-----------------+-----------------+
+    |                                 |
+    v                                 v
+[Guest Flow]                     [Authenticated Flow]
+    |                                 |
+    v                                 v
+[1. Upload DXF]                [1. Login/Signup via Firebase]
+    |                                 | (Optional: Save Credentials)
+    v                                 v
+[2. Parse DXF (dxf_parser.py)]  [2. Upload DXF]
+    |                                 |
+    v                                 v
+[3. Calculate Cost (costing.py)] [3. Parse DXF (dxf_parser.py)]
+    |                                 |
+    v                                 v
+[4. Display Quote]              [4. Calculate Cost (costing.py)]
+    |                                 |
+    v                                 v
+[5. Guest Checkout Option]      [5. Display Quote]
+    |                                 |
+    +------------+----------------+    v
+    |                        |         [6. Save Order to MongoDB Atlas]
+    v                        v         |
+[6. Proceed to Stripe]  [Offer Login/Signup]  v
+    |                        |         [7. Checkout Option]
+    v                        v         |
+[7. Stripe Checkout]  [Login/Signup via Firebase]  v
+    |                        |         [8. Proceed to Stripe]
+    v                        v         |
+[8. Payment Processed]  [Save Order to MongoDB]  v
+    |                        |         [9. Stripe Checkout]
+    v                        v         |
+[9. Stripe Webhook Confirms]  [Proceed to Stripe]  v
+    |                        |         [10. Payment Processed]
+    v                        v         |
+[10. Save Order to MongoDB]  [Stripe Checkout]  v
+    |                        |         [11. Stripe Webhook Confirms]
+    v                        v         |
+[11. Send Confirmation]  [Payment Processed]  v
+    |                        |         [12. Save Order to MongoDB]
+    v                        v         |
+[End: Confirmation Displayed]  [Stripe Webhook Confirms]  v
+                                    |         [13. Send Confirmation]
+                                    v         |
+                               [Save Order to MongoDB]  v
+                                    |         [14. End: Confirmation Displayed]
+                                    v
+                               [Send Confirmation]
+                                    |
+                               [End: Confirmation Displayed]
+
+
+Description:
+Guest Flow: Users upload a DXF, get a quote, proceed to Stripe Checkout without login, pay, and receive confirmation after webhook validation and MongoDB storage.
+Authenticated Flow: Users log in via Firebase, follow the same process, and save orders to MongoDB for status tracking.
+Tools: Firebase for auth, MongoDB Atlas for storage, Stripe for payments.
+
+
+Deliverable: Prototype UI with guest and authenticated checkout flows.
+
+
+
+
+Milestone: UI prototype completed and integrated (Target: Next development cycle).
+
+Phase 4: Testing and Optimization
+
+Status: Not Started
+Tasks:
+Test guest and authenticated checkout flows with sample DXFs.
+Optimize performance (e.g., DXF parsing speed, UI load times).
+Validate MongoDB data and Stripe webhook responses.
+
+
+Milestone: Full test suite passes, performance optimized (Target: Post-UI integration).
+
+Phase 5: Deployment
+
+Status: Not Started
+Tasks:
+Deploy to app.plasmatableburnouts.com using cPanel or Heroku.
+Configure environment variables (.env) for production.
+Set up basic monitoring and initial user feedback collection.
+
+
+Milestone: Live site with initial users (Target: Post-testing).
+
+Tools and Workflow
+
+Development: VS Code with Cascade for in-place edits.
+Testing: Local testing with python run.py and npm run dev.
+Version Control: Git with clear commit messages (e.g., "Add checkout flow to UI").
+Deployment: cPanel or Heroku, following folder structure in folder_structure.md.
+
+Notes
+
+Preserve app/utils/costing.py and app/utils/dxf_parser.py functionality.
+Leverage Firebase, MongoDB Atlas, and Stripe to minimize custom development.
+Adjust phases based on testing feedback.
