@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlasmaProject</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:300,400,600&display=swap" rel="stylesheet">
+    
+    <!-- Vite HMR for development -->
+    {% if config.DEBUG %}
+      <script type="module" src="http://localhost:3001/static/js/main.js"></script>
+    {% else %}
+      <link rel="stylesheet" href="{{ url_for('static', filename='dist/css/input.css') }}">
+      <script type="module" src="{{ url_for('static', filename='dist/js/main.js') }}"></script>
+    {% endif %}
+  </head>
+  <body class="bg-gray-50 min-h-screen">
+
+    <!-- Oshcut-style Site Header -->
+    <header class="siteHeader" style="width:100%;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:60px;box-shadow:0 2px 6px rgba(0,0,0,0.06);border-bottom:1px solid #e0e0e0;">
+      <div class="headerLogoContainer"><a href="/"><img src="{{ url_for('static', filename='favicon.ico') }}" alt="PlasmaProject" style="height:36px;"></a></div>
+      <div class="userInfo" style="display:flex;gap:12px;align-items:center;">
+        <button class="LinkButton createAccount" style="background:#0058ca;color:#fff;border:none;padding:8px 18px;border-radius:4px;font-weight:600;box-shadow:0 4px 6px rgba(0,0,0,0.08);">Create Account</button>
+        <button class="signIn" style="background:#fff;color:#0058ca;border:1px solid #0058ca;padding:8px 18px;border-radius:4px;font-weight:600;">Sign In</button>
+      </div>
+    </header>
+
+    {% block content %}{% endblock %}
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        var signoutBtn = document.getElementById('signoutButton');
+        if (signoutBtn) {
+          signoutBtn.addEventListener('click', async function() {
+            try {
+              await firebase.auth().signOut();
+            } catch (e) {}
+            await fetch('/auth/logout', { method: 'POST', credentials: 'same-origin' });
+            window.location.reload();
+          });
+        }
+        var signinBtn = document.getElementById('headerSigninButton');
+        if (signinBtn) {
+          signinBtn.addEventListener('click', function() {
+            window.openModal && window.openModal('loginModal');
+          });
+        }
+      });
+    </script>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script>
+      // Global Firebase config for all pages
+      const firebaseConfig = {
+        apiKey: "AIzaSyDoM26VQTyovfL3c7sYBa1ve2l4T25RsRs",
+        authDomain: "plasmaprojectmvp.firebaseapp.com",
+        projectId: "plasmaprojectmvp",
+        storageBucket: "plasmaprojectmvp.firebasestorage.app",
+        messagingSenderId: "158356076589",
+        appId: "1:158356076589:web:d44fd62b360ce49aa9e0a4",
+        measurementId: "G-T0D9ZGFDPN"
+      };
+      if (typeof firebase !== 'undefined' && firebase.apps && !firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+    </script>
+    {% include 'partials/login_modal.html' %}
+{% include 'partials/signup_modal.html' %}
+    <script src="{{ url_for('static', filename='js/modals.js') }}"></script>
+
+  </body>
+</html>

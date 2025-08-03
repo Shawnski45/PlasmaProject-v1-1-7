@@ -1,0 +1,842 @@
+{% extends "base.html" %}
+{% block content %}
+  <style>
+    body { background: #f8f9fa; font-family: 'Nunito', sans-serif; min-height: 100vh; }
+    .container { display: flex; gap: 20px; flex-wrap: wrap; max-width: 1200px; margin: 20px auto; }
+    .left-panel { width: 100%; max-width: 400px; position: relative; }
+    .uploadParts { height: calc(100vh - 60px); display: flex; justify-content: center; align-items: center; background: #fff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 24px; flex: 1; }
+    .cartUploadButtonWrapper { display: flex; justify-content: flex-start; margin-bottom: 16px; }
+    .DropdownButton.cartUploadMultiButton { background: #0058ca; color: #fff; border-radius: 4px; font-weight: 600; padding: 12px 28px; font-size: 18px; box-shadow: 0 4px 6px rgba(0,0,0,0.08); border: none; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .cart-welcome { text-align: center; margin-bottom: 24px; }
+    .cart-welcome .title-upload { font-size: 50px; font-weight: 700; color: #0058ca; display: flex; align-items: center; justify-content: center; gap: 16px; }
+    .cart-welcome .title-upload svg { font-size: 60px; color: #0058ca; }
+    .cart-welcome .upload-instructions { font-size: 18px; color: #333; margin-top: 12px; }
+    .file-type-section { display: flex; gap: 36px; justify-content: center; margin-top: 32px; }
+    .file-type-block { background: #f4f6fb; border-radius: 8px; padding: 16px 24px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.06); }
+    .file-type-block img { width: 56px; height: 56px; margin-bottom: 8px; }
+    .PartCheckoutArea { flex: 2; min-width: 320px; display: flex; flex-direction: column; gap: 24px; }
+    .cart-list { display: flex; flex-direction: column; gap: 16px; max-height: 48vh; overflow-y: auto; background: #fff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.08); padding: 16px; }
+    .part-card { display: flex; align-items: flex-start; gap: 16px; background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); padding: 16px; }
+    .preview-svg { width: 150px; height: 150px; border: 1px solid #e0e0e0; border-radius: 6px; background: #fafbfc; }
+    .part-details { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+    .part-details .part-name { font-size: 20px; font-weight: 700; color: #222; }
+    .part-details select, .part-details input[type="number"] { padding: 8px; border: 1px solid #bfc7d1; border-radius: 4px; font-size: 15px; width: 120px; }
+    .part-details .price, .part-details .subtotal { font-weight: 700; color: #0058ca; }
+    .remove-btn { background: transparent; border: none; color: #bbb; font-size: 22px; cursor: pointer; position: absolute; top: 12px; right: 12px; }
+    .remove-btn:hover { color: #e74c3c; }
+    .ProjectPriceBox { background: #f4f6fb; border-radius: 8px; padding: 18px 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.06); margin-bottom: 12px; }
+    .ProjectPriceBox .price-breakdown { font-size: 16px; color: #444; margin-bottom: 8px; }
+    .checkoutButtonContainer { display: flex; justify-content: flex-end; margin-top: 16px; }
+    .checkoutButtonContainer .checkout-btn { background: #0058ca; color: #fff; border-radius: 4px; font-weight: 700; font-size: 18px; padding: 14px 32px; border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .checkoutButtonContainer .checkout-btn:disabled { background: #bfc7d1; color: #fff; }
+    .signInMessage { text-align: right; font-size: 15px; color: #0058ca; margin-top: 6px; }
+    .DFMFeedback { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; border-radius: 6px; padding: 12px 16px; margin: 16px 0; font-size: 15px; }
+    @media (max-width: 768px) {
+      .container { flex-direction: column; gap: 0; }
+      .left-panel { width: 100%; max-width: 100%; }
+      .uploadParts { min-height: 320px; height: auto; }
+      .PartCheckoutArea { min-width: 0; }
+      .cart-list { max-height: 35vh; }
+    }
+
+
+    .container { max-width: 1200px; margin: 20px auto; display: flex; gap: 20px; flex-grow: 1; flex-wrap: wrap; }
+    .left-panel { width: 400px; min-width: 300px; max-width: 100vw; position: fixed; left: 0; top: 80px; bottom: 0; height: calc(100vh - 100px); display: flex; align-items: center; justify-content: center; background: #F4F6F8; z-index: 10; box-shadow: 2px 0 8px rgba(44,62,80,0.05); border-right: 1px solid #e0e0e0; }
+    .drop-zone { width: 100%; height: 600px; border: 3px dashed #3498DB; background-color: #FFFFFF; display: flex; justify-content: center; align-items: center; text-align: center; font-size: 20px; color: #7F8C8D; border-radius: 10px; transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); cursor: pointer; outline: none; position: relative; }
+    .drop-zone:focus { outline: 2px solid #2563eb; box-shadow: 0 0 0 4px #93c5fd; }
+    .drop-zone.dragover { background-color: #E8F4FD; border-color: #2980B9; color: #2980B9; box-shadow: 0 0 0 4px #60a5fa; }
+    .drop-zone .upload-btn { background-color: #2563eb; color: #fff; font-weight: 700; border-radius: 0.5rem; padding: 0.75rem 2rem; font-size: 1.125rem; transition: background 0.2s; box-shadow: 0 2px 4px rgba(37,99,235,0.2); }
+    .drop-zone .upload-btn:hover, .drop-zone .upload-btn:focus { background-color: #1d4ed8; }
+    .cart-container { flex: 1; display: flex; flex-direction: column; gap: 15px; margin-left: 420px; min-width: 0; }
+    .cart-list { max-height: 60vh; min-height: 200px; overflow-y: auto; padding-right: 10px; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(44,62,80,0.04); }
+    h2 { font-size: 22px; font-weight: 700; color: #2C3E50; margin-bottom: 10px; }
+    .part-card { background-color: #FFFFFF; border: 1px solid #E0E0E0; border-radius: 8px; padding: 15px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); display: flex; align-items: center; position: relative; margin-bottom: 10px; }
+    .preview-svg { width: 120px; height: 120px; border: 1px solid #E0E0E0; margin-right: 15px; }
+    .part-details { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .part-details span { font-size: 16px; color: #34495E; }
+    .part-details .part-name { font-size: 18px; font-weight: 700; color: #2C3E50; }
+    .part-details .price, .part-details .subtotal { font-weight: 700; }
+    .part-details input[type="number"], .part-details select { padding: 6px; border: 1px solid #BDC3C7; border-radius: 4px; font-size: 14px; width: 100px; }
+    .part-details select.invalid, .part-details input.invalid { border-color: #E74C3C; background-color: #FFF5F5; }
+    .material-container .asterisk, .thickness-container .asterisk { color: #E74C3C; display: none; }
+    .material-container .asterisk.visible, .thickness-container .asterisk.visible { display: inline; }
+    .remove-btn { position: absolute; top: 10px; right: 10px; width: 20px; height: 20px; background-color: transparent; border: none; font-size: 16px; color: #7F8C8D; cursor: pointer; }
+    .remove-btn:hover { color: #E74C3C; }
+    .total-container { text-align: right; margin-top: 15px; }
+    .total-label { font-size: 20px; font-weight: 700; color: #2C3E50; margin-right: 10px; }
+    .total-price { font-size: 20px; font-weight: 700; color: #2980B9; }
+    .button-container { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
+    .flash-success { color: #27AE60; }
+    .flash-error { color: #E74C3C; }
+    @media (max-width: 900px) {
+      .container { flex-direction: column; gap: 0; }
+      .left-panel { position: static; width: 100%; min-width: 0; max-width: 100%; height: auto; box-shadow: none; border-right: none; top: 0; left: 0; }
+      .cart-container { margin-left: 0; }
+    }
+  </style>
+{% if request.endpoint != 'payments.checkout' %}
+  <div class="container">
+    <div class="left-panel">
+      <div class="cartUploadButtonWrapper">
+        <button class="DropdownButton cartUploadMultiButton" id="cartUploadMultiButton">
+          Add parts...
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M6 8l4 4 4-4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <input type="file" id="dxf-upload" accept=".dxf" multiple style="display:none;"> <!-- Only DXF is supported by backend -->
+      </div>
+      <div class="uploadParts" id="drop-zone" tabindex="0" aria-label="File upload area" style="position:relative; outline:none; transition: all 0.3s ease;">
+        <div id="upload-overlay" style="display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 88, 202, 0.1); border: 3px dashed #0058ca; border-radius: 8px; z-index: 10; pointer-events: none;">
+          <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #0058ca; font-weight: bold; font-size: 1.2em;">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 10px;">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <div>Drop files to upload</div>
+          </div>
+        </div>
+        <div id="upload-content">
+          <div class="cart-welcome">
+            <div class="title-upload">
+              <svg width="52" height="52" viewBox="0 0 52 52" fill="none"><circle cx="26" cy="26" r="26" fill="#eaf1fb"/><path d="M26 14v24M14 26h24" stroke="#0058ca" stroke-width="4" stroke-linecap="round"/></svg>
+              Upload Parts
+            </div>
+            <div class="upload-instructions">Drag-drop your files here to upload, or click "Add parts" above</div>
+          </div>
+          <div class="file-type-section">
+            <div class="file-type-block">
+              <img src="https://oshcut.com/static/img/icons/2d.svg" alt="2D"/>
+              <div><b>2D Files</b></div>
+              <div>DXF, SVG, AI</div>
+            </div>
+            <div class="file-type-block">
+              <img src="https://oshcut.com/static/img/icons/3d.svg" alt="3D"/>
+              <div><b>3D Files</b></div>
+              <div>STEP, IGES, SLDPRT, etc.</div>
+            </div>
+          </div>
+          <div style="text-align:center;margin-top:18px;">
+            <a href="https://oshcut.com/help/file-preparation" target="_blank" style="color:#0058ca;text-decoration:underline;font-size:14px;">File preparation instructions</a>
+          </div>
+        </div>
+        <div id="upload-progress" style="display: none; text-align: center; margin-top: 20px;">
+          <div class="progress-bar" style="height: 4px; background: #e0e0e0; border-radius: 2px; overflow: hidden; margin-bottom: 10px;">
+            <div class="progress" style="height: 100%; background: #0058ca; width: 0%; transition: width 0.3s ease;"></div>
+          </div>
+          <div class="progress-text" style="font-size: 14px; color: #666;">Uploading files...</div>
+        </div>
+      </div>
+    </div>
+    <div class="PartCheckoutArea">
+      <div id="error-messages" style="display:none;"></div>
+      <!-- Validation Popup -->
+      <div id="overlay" class="fixed inset-0 bg-black bg-opacity-30 z-40 hidden"></div>
+      <div id="validationPopup" class="fixed left-1/2 top-1/4 transform -translate-x-1/2 z-50 hidden bg-white border-2 border-red-500 rounded-lg shadow-lg p-8 flex flex-col items-center min-w-[320px]">
+        <span id="popupMessage" class="text-lg font-semibold text-red-600 mb-4"></span>
+        
+      </div>
+      <div class="cart-container">
+        <h2>Instant Quote</h2>
+        <form id="cartForm" method="post" action="/">
+          <div class="cart-list" id="cartList">
+            <!-- Cart items populated here -->
+          </div>
+          <div class="total-container">
+            <span class="total-label">Total:</span>
+            <span class="total-price" id="total-price">$0.00</span>
+          </div>
+          <div class="button-container">
+            <button type="button" id="calculateButton">Calculate</button>
+<button type="button" id="buyButton">Buy Now</button>
+<button type="button" id="clearButton">Clear</button>
+          </div>
+        </form>
+      </div>
+      <div id="isCalculatedData" data-is-calculated="{{ session.get('calculated', False) | tojson }}" style="display:none;"></div>
+    </div>
+  </div>
+{% endif %}
+
+{% endblock %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // ... (keep all existing functions like showPopup, updateButtonVisibility, calculatePrices, etc., unchanged)
+  (function() {
+      const renderedCartUids = new Set();
+      let isCalculated = document.getElementById('isCalculatedData').dataset.isCalculated === 'true';
+
+
+      function showPopup(message) {
+        const popup = document.getElementById('validationPopup');
+        const overlay = document.getElementById('overlay');
+        document.getElementById('popupMessage').textContent = message;
+        popup.style.display = 'block';
+        overlay.style.display = 'block';
+      }
+
+      function closePopup() {
+        const popup = document.getElementById('validationPopup');
+        const overlay = document.getElementById('overlay');
+        popup.style.display = 'none';
+        overlay.style.display = 'none';
+      }
+
+      function updateButtonVisibility(items) {
+        const calculateButton = document.getElementById('calculateButton');
+        const buyButton = document.getElementById('buyButton');
+        // [DIAGNOSTIC] signinButton JS reference removed.
+        const clearButton = document.getElementById('clearButton');
+        const allFilled = items.length > 0 && items.every(item => item.material && item.thickness);
+        if (calculateButton && calculateButton.classList) {
+          calculateButton.classList.toggle('hidden', items.length === 0);
+          calculateButton.classList.toggle('bg-gray-500', !allFilled);
+          calculateButton.classList.toggle('bg-green-600', allFilled);
+          calculateButton.classList.toggle('hover:bg-gray-600', !allFilled);
+          calculateButton.classList.toggle('hover:bg-green-700', allFilled);
+        }
+        if (clearButton && clearButton.classList) {
+          clearButton.classList.toggle('hidden', items.length === 0);
+        }
+        if (buyButton && buyButton.classList) {
+          buyButton.classList.toggle('hidden', !isCalculated);
+        }
+        // [DIAGNOSTIC] signinButton logic removed.
+      }
+
+      window.calculatePrices = function() {
+        const cartForm = document.getElementById('cartForm');
+        const formData = new FormData(cartForm);
+        const selects = cartForm.querySelectorAll('select');
+        for (let sel of selects) {
+          if (!sel.value) {
+            showPopup('Please select material and thickness for all parts before calculating.');
+            return;
+          }
+        }
+        fetch('/calculate', {
+          method: 'POST',
+          body: formData,
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        }).then(response => response.json()).then(data => {
+          if (data.invalid_items) {
+            data.invalid_items.forEach(item => {
+              const card = document.querySelector(`.part-card[data-cart-uid*="${item.part_number.replace('.', '_')}"]`);
+              if (card) {
+                const materialSelect = card.querySelector(`select[name^="material_"]`);
+                const thicknessSelect = card.querySelector(`select[name^="thickness_"]`);
+                if (item.message.includes("material")) materialSelect.classList.add('invalid');
+                if (item.message.includes("thickness")) thicknessSelect.classList.add('invalid');
+              }
+            });
+            showPopup(`Validation errors: ${data.invalid_items.map(item => item.message).join(", ")}`);
+          }
+          if (data.detailed_breakdown) {
+            data.detailed_breakdown.forEach(item => {
+              const card = document.querySelector(`.part-card[data-cart-uid="${item.cart_uid}"]`);
+              if (card) {
+                card.dataset.unitPrice = item.unit_price.toFixed(2);
+                const priceEl = card.querySelector('.price');
+                const subtotalEl = card.querySelector('.subtotal');
+                priceEl.textContent = `Unit Price: $${item.unit_price.toFixed(2)}`;
+                subtotalEl.textContent = `Subtotal: $${item.sell_price_per_part.toFixed(2)}`;
+              }
+            });
+            document.getElementById('total-price').textContent = `Total: $${data.total_sell_price.toFixed(2)}`;
+            isCalculated = true;
+            sessionStorage.setItem('calculated', 'true');
+            updateButtonVisibility(getCartItems());
+          }
+        }).catch(error => showPopup("Error calculating prices: " + error));
+      };
+
+      window.clearCart = function() {
+  fetch('/api/clear', { method: 'POST' })
+    .then(response => {
+      if (response.ok) {
+        renderedCartUids.clear();
+        isCalculated = false;
+        sessionStorage.setItem('calculated', 'false');
+        updateCartUI([], true);
+        document.getElementById('total-price').textContent = '$0.00';
+        location.reload(); // Force refresh to sync state
+      } else {
+        response.text().then(text => {
+          showPopup('Failed to clear cart: ' + text);
+        });
+      }
+    })
+    .catch(error => showPopup('Error clearing cart: ' + error));
+};
+
+      function updateField(cartUid, fieldType) {
+        const card = document.querySelector(`.part-card[data-cart-uid="${cartUid}"]`);
+        const materialSelect = card.querySelector(`select[name="material_${cartUid}"]`);
+        const thicknessSelect = card.querySelector(`select[name="thickness_${cartUid}"]`);
+        const quantityInput = card.querySelector(`input[name="quantity_${cartUid}"]`);
+        isCalculated = false;
+        sessionStorage.setItem('calculated', 'false');
+        updateButtonVisibility(getCartItems());
+        if (fieldType === 'material') {
+          const newMaterial = materialSelect.value;
+          const currentThickness = thicknessSelect.value;
+          const allowedThicknesses = [0.25, 0.5, 0.75, 1.0, 1.5, 2.0];
+          if (newMaterial && currentThickness && !allowedThicknesses.includes(parseFloat(currentThickness))) {
+            thicknessSelect.value = '';
+            thicknessSelect.classList.add('invalid');
+            showPopup(`The selected thickness is not available for ${newMaterial}. Please select a valid thickness for ${card.querySelector('.part-name').textContent}.`);
+          } else if (!newMaterial) {
+            materialSelect.classList.add('invalid');
+            thicknessSelect.value = '';
+            thicknessSelect.classList.remove('invalid');
+            showPopup(`Please select a material for ${card.querySelector('.part-name').textContent}.`);
+          } else {
+            materialSelect.classList.remove('invalid');
+            thicknessSelect.classList.remove('invalid');
+          }
+        } else if (fieldType === 'thickness') {
+          const thickness = thicknessSelect.value;
+          if (!materialSelect.value) {
+            thicknessSelect.value = '';
+            thicknessSelect.classList.add('invalid');
+            showPopup(`Please select a material before choosing a thickness for ${card.querySelector('.part-name').textContent}.`);
+          } else if (!thickness) {
+            thicknessSelect.classList.add('invalid');
+            showPopup(`Please select a thickness for ${card.querySelector('.part-name').textContent}.`);
+          } else {
+            thicknessSelect.classList.remove('invalid');
+          }
+        } else if (fieldType === 'quantity') {
+          const quantity = parseInt(quantityInput.value);
+          if (quantity < 0) {
+            quantityInput.value = 0;
+            quantityInput.classList.add('invalid');
+            showPopup(`Quantity cannot be negative for ${card.querySelector('.part-name').textContent}.`);
+          } else {
+            quantityInput.classList.remove('invalid');
+          }
+        }
+        updateAsterisk(materialSelect);
+        updateAsterisk(thicknessSelect);
+        fetch('/cart_items', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `cart_uid=${encodeURIComponent(cartUid)}&${fieldType}=${encodeURIComponent(fieldType === 'quantity' ? quantityInput.value : fieldType === 'material' ? materialSelect.value : thicknessSelect.value)}`
+        }).then(response => response.json()).then(data => {
+          if (data.items) {
+            updateCartUI(data.items, false);
+          }
+        }).catch(error => showPopup("Error updating field: " + error));
+      }
+
+      function removeItem(cartUid) {
+        fetch('/remove', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `cart_uid=${encodeURIComponent(cartUid)}`
+        }).then(response => {
+          if (response.ok) {
+            renderedCartUids.delete(cartUid);
+            fetch('/cart_items').then(resp => resp.json()).then(data => {
+              updateCartUI(data.items || [], false);
+            }).catch(error => showPopup("Error fetching updated cart: " + error));
+          } else {
+            showPopup("Failed to remove item");
+          }
+        }).catch(error => showPopup("Error removing item: " + error));
+      }
+
+      // Render SVG previews for cart items by fetching geometry from /preview_data
+function renderPreviews(svgs = document.querySelectorAll('.preview-svg'), item = null) {
+        if (!svgs || svgs.length === 0) {
+          console.error('No preview SVG elements found for rendering.');
+          return;
+        }
+        const N = 3;
+        let rendered = 0;
+
+        function renderSVG(svg) {
+          const previewId = svg.id;
+          if (svg.innerHTML) return;
+          fetch(`/preview_data?id=${previewId.replace('preview_', '')}`)
+            .then(response => {
+              if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+              return response.json();
+            })
+            .then(previewObj => {
+              const preview = previewObj.previews.find(p => p.id === previewId);
+              if (preview && preview.data) {
+                let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                preview.data.forEach(entity => {
+                  if (entity.type === 'lwpolyline' || entity.type === 'polyline') {
+                    entity.points.forEach(([x, y]) => {
+                      minX = Math.min(minX, x); minY = Math.min(minY, y);
+                      maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
+                    });
+                  } else if (entity.type === 'line') {
+                    minX = Math.min(minX, entity.start[0], entity.end[0]);
+                    minY = Math.min(minY, entity.start[1], entity.end[1]);
+                    maxX = Math.max(maxX, entity.start[0], entity.end[0]);
+                    maxY = Math.max(maxY, entity.start[1], entity.end[1]);
+                  } else if (entity.type === 'circle' || entity.type === 'arc') {
+                    minX = Math.min(minX, entity.center[0] - entity.radius);
+                    minY = Math.min(minY, entity.center[1] - entity.radius);
+                    maxX = Math.max(maxX, entity.center[0] + entity.radius);
+                    maxY = Math.max(maxY, entity.center[1] + entity.radius);
+                  }
+                });
+                const width = maxX - minX || 1;
+                const height = maxY - minY || 1;
+                const padding = 0.1;
+                const paddedWidth = width * (1 + 2 * padding);
+                const paddedHeight = height * (1 + 2 * padding);
+                const centerX = (minX + maxX) / 2;
+                const centerY = (minY + maxY) / 2;
+                const viewBoxMinX = centerX - paddedWidth / 2;
+                const viewBoxMinY = centerY - paddedHeight / 2;
+                const viewBox = `${viewBoxMinX} ${viewBoxMinY} ${paddedWidth} ${paddedHeight}`;
+                svg.setAttribute('viewBox', viewBox);
+
+                const paths = preview.data.map(entity => {
+                  let d = '';
+                  if (entity.type === 'lwpolyline' || entity.type === 'polyline') {
+                    d = entity.points.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x} ${y}`).join(' ') + (entity.points.length > 2 && entity.points[0][0] === entity.points[entity.points.length - 1][0] && entity.points[0][1] === entity.points[entity.points.length - 1][1] ? ' Z' : '');
+                  } else if (entity.type === 'line') {
+                    d = `M ${entity.start[0]} ${entity.start[1]} L ${entity.end[0]} ${entity.end[1]}`;
+                  } else if (entity.type === 'circle') {
+                    const cx = entity.center[0];
+                    const cy = entity.center[1];
+                    const r = entity.radius;
+                    d = `M ${cx - r} ${cy} a ${r},${r} 0 1,0 ${2 * r},0 a ${r},${r} 0 1,0 -${2 * r},0`;
+                  } else if (entity.type === 'arc') {
+                    const startRad = entity.start_angle * Math.PI / 180;
+                    const endRad = entity.end_angle * Math.PI / 180;
+                    const startX = entity.center[0] + entity.radius * Math.cos(startRad);
+                    const startY = entity.center[1] + entity.radius * Math.sin(startRad);
+                    const endX = entity.center[0] + entity.radius * Math.cos(endRad);
+                    const endY = entity.center[1] + entity.radius * Math.sin(endRad);
+                    const largeArc = Math.abs(entity.end_angle - entity.start_angle) > 180 ? 1 : 0;
+                    const sweep = 1;
+                    d = `M ${startX} ${startY} A ${entity.radius} ${entity.radius} 0 ${largeArc} ${sweep} ${endX} ${endY}`;
+                  }
+                  return `<path d="${d}" stroke="black" fill="none" stroke-width="1" vector-effect="non-scaling-stroke"/>`;
+                }).join('');
+                const midY = (minY + maxY) / 2;
+                svg.innerHTML = `<g transform="scale(1,-1) translate(0, ${-2 * midY})">${paths}</g>`;
+                if (item) renderedCartUids.add(item.cart_uid);
+              } else {
+                console.error(`No preview data for ${previewId}:`, previewObj);
+                svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle">Preview Error</text>';
+              }
+            })
+            .catch(error => {
+              console.error(`Error rendering preview for ${previewId}:`, error);
+              svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle">Preview Error</text>';
+            });
+        }
+
+        for (let i = 0; i < svgs.length && i < N; i++) {
+          renderSVG(svgs[i]);
+          rendered++;
+        }
+
+        if ('IntersectionObserver' in window) {
+          const observer = new IntersectionObserver((entries, obs) => {
+            entries.forEach(entry => {
+              if (entry.isIntersecting && !entry.target.innerHTML) {
+                renderSVG(entry.target);
+                obs.unobserve(entry.target);
+              }
+            });
+          }, { rootMargin: '400px' });
+          for (let i = N; i < svgs.length; i++) {
+            observer.observe(svgs[i]);
+          }
+        } else {
+          for (let i = N; i < svgs.length; i++) {
+            renderSVG(svgs[i]);
+          }
+        }
+      }
+
+      function getCartItems() {
+        const items = [];
+        document.querySelectorAll('.part-card').forEach(card => {
+          const cartUid = card.getAttribute('data-cart-uid');
+          const material = card.querySelector(`select[name="material_${cartUid}"]`).value;
+          const thickness = card.querySelector(`select[name="thickness_${cartUid}"]`).value;
+          const quantity = parseInt(card.querySelector(`input[name="quantity_${cartUid}"]`).value) || 1;
+          items.push({ cart_uid: cartUid, material, thickness, quantity });
+        });
+        return items;
+      }
+
+      // Update the cart UI with the latest items from the backend
+function updateCartUI(items, renderPreviewsFlag = false) {
+        const cartList = document.getElementById('cartList');
+        if (!cartList) {
+          console.error('Cart list element not found');
+          return;
+        }
+        const existingCards = new Map(Array.from(cartList.querySelectorAll('.part-card')).map(card => [card.getAttribute('data-cart-uid'), card]));
+        items.forEach(item => {
+          let card = existingCards.get(item.cart_uid);
+          if (card) {
+            const materialSelect = card.querySelector(`select[name="material_${item.cart_uid}"]`);
+            const thicknessSelect = card.querySelector(`select[name="thickness_${item.cart_uid}"]`);
+            const quantityInput = card.querySelector(`input[name="quantity_${item.cart_uid}"]`);
+            materialSelect.value = materialSelect.value || item.material || '';
+            thicknessSelect.value = thicknessSelect.value || item.thickness || '';
+            quantityInput.value = quantityInput.value || item.quantity || 1;
+            card.querySelector('.part-name').textContent = item.part_number;
+            card.querySelector('.price').textContent = `Unit Price: $${(item.unit_price || 0).toFixed(2)}`;
+            card.querySelector('.subtotal').textContent = `Subtotal: $${((item.unit_price || 0) * (parseInt(quantityInput.value) || 1)).toFixed(2)}`;
+            updateAsterisk(materialSelect);
+            updateAsterisk(thicknessSelect);
+            existingCards.delete(item.cart_uid);
+          } else {
+            card = document.createElement('div');
+            card.className = 'part-card';
+            card.setAttribute('data-cart-uid', item.cart_uid);
+            card.innerHTML = `
+              <svg class="preview-svg" id="preview_${item.cart_uid}"></svg>
+              <div class="part-details">
+                <span class="part-name">${item.part_number}</span>
+                <div class="material-container">
+                  <span class="material-label">Material:<span class="asterisk${!item.material ? ' visible' : ''}">*</span></span>
+                  <select name="material_${item.cart_uid}" required>
+                    <option value="" ${!item.material ? 'selected' : ''}>Select Material</option>
+                    ${['A36 Steel', 'Stainless 304', 'Stainless 316', 'Aluminum 3003', 'Aluminum 6061'].map(mat => `<option value="${mat}" ${item.material === mat ? 'selected' : ''}>${mat}</option>`).join('')}
+                  </select>
+                </div>
+                <div class="thickness-container">
+                  <span class="thickness-label">Thickness:<span class="asterisk${!item.thickness ? ' visible' : ''}">*</span></span>
+                  <select name="thickness_${item.cart_uid}" required>
+                    <option value="" ${!item.thickness ? 'selected' : ''}>Select Thickness</option>
+                    ${[0.25, 0.5, 0.75, 1.0, 1.5, 2.0].map(thick => `<option value="${thick}" ${item.thickness == thick ? 'selected' : ''}>${thick}</option>`).join('')}
+                  </select>
+                </div>
+                <span class="price">Unit Price: $${(item.unit_price || 0).toFixed(2)}</span>
+                <span class="subtotal">Subtotal: $${((item.unit_price || 0) * (item.quantity || 1)).toFixed(2)}</span>
+                <span>Quantity:
+                  <input type="number" name="quantity_${item.cart_uid}" value="${item.quantity || 1}" min="0" class="quantity-input" />
+                </span>
+              </div>
+              <button type="button" class="remove-btn" data-cart-uid="${item.cart_uid}">X</button>
+            `;
+            cartList.appendChild(card);
+            if (renderPreviewsFlag) {
+              const svg = card.querySelector('.preview-svg');
+              if (svg && !renderedCartUids.has(item.cart_uid)) {
+                renderPreviews([svg], item);
+                renderedCartUids.add(item.cart_uid);
+              }
+            }
+          }
+        });
+        existingCards.forEach((card, uid) => {
+          card.remove();
+          renderedCartUids.delete(uid);
+        });
+        updateButtonVisibility(getCartItems());
+        attachCartEventHandlers();
+      }
+
+      async function uploadFiles(files, retryCount = 0) {
+        const MAX_RETRIES = 2;
+        const formData = new FormData();
+        formData.append('request_id', Date.now());
+        
+        // Add all valid files to form data
+        files.forEach(file => {
+          formData.append('file', file);
+        });
+        
+        try {
+          updateProgress(10, 'Starting upload...');
+          
+          // Create abort controller for timeout
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 min timeout
+          
+          const response = await fetch('/parse_dxf', {
+            method: 'POST',
+            body: formData,
+            headers: { 
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-Retry-Attempt': retryCount.toString()
+            },
+            signal: controller.signal
+          });
+          
+          clearTimeout(timeoutId);
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Server responded with ${response.status}: ${errorText}`);
+          }
+          
+          const data = await response.json();
+          
+          if (data && data.items) {
+            updateProgress(100, 'Processing complete!');
+            updateCartUI(data.items, true);
+            // Show success message
+            if (uploadProgress) {
+              progressText.textContent = 'Upload successful!';
+              progressText.style.color = '#2ecc71';
+              setTimeout(() => {
+                uploadProgress.style.display = 'none';
+                uploadContent.style.display = 'block';
+              }, 2000);
+            }
+          } else if (data && data.error) {
+            throw new Error(data.error);
+          } else {
+            // Fallback to fetching cart items if response format is unexpected
+            const cartResponse = await fetch('/cart_items');
+            const cartData = await cartResponse.json();
+            updateCartUI(cartData.items || [], true);
+          }
+        } catch (error) {
+          console.error('Upload error:', error);
+          
+          if (retryCount < MAX_RETRIES) {
+            // Exponential backoff
+            const delay = Math.pow(2, retryCount) * 1000;
+            updateProgress(0, `Upload failed. Retrying in ${delay/1000} seconds...`);
+            
+            // Retry after delay
+            await new Promise(resolve => setTimeout(resolve, delay));
+            return uploadFiles(files, retryCount + 1);
+          }
+          
+          // All retries failed, show error
+          showUploadError(`Upload failed: ${error.message || 'Unknown error'}`);
+          
+          // If it's a network error, show a more user-friendly message
+          if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+            showUploadError('Network error. Please check your connection and try again.');
+          }
+        }
+      }
+
+      function attachCartEventHandlers() {
+        document.querySelectorAll('select[name^="material_"], select[name^="thickness_"]').forEach(sel => {
+          sel.removeEventListener('change', sel._changeHandler);
+          sel._changeHandler = () => {
+            const cartUid = sel.name.split('_')[1];
+            const fieldType = sel.name.startsWith('material_') ? 'material' : 'thickness';
+            updateField(cartUid, fieldType);
+            updateAsterisk(sel);
+          };
+          sel.addEventListener('change', sel._changeHandler);
+          updateAsterisk(sel);
+        });
+        document.querySelectorAll('input[name^="quantity_"]').forEach(inp => {
+          inp.removeEventListener('change', inp._changeHandler);
+          inp._changeHandler = () => {
+            const cartUid = inp.name.split('_')[1];
+            updateField(cartUid, 'quantity');
+          };
+          inp.addEventListener('change', inp._changeHandler);
+        });
+        document.querySelectorAll('.remove-btn').forEach(btn => {
+          btn.removeEventListener('click', btn._clickHandler);
+          btn._clickHandler = () => removeItem(btn.getAttribute('data-cart-uid'));
+          btn.addEventListener('click', btn._clickHandler);
+        });
+      }
+
+      function updateAsterisk(sel) {
+        const parent = sel.closest('div');
+        if (parent) {
+        e.stopPropagation();
+      }
+
+      function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        handleFiles(files);
+      }
+
+  if (uploadButton) {
+    uploadButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      fileInput.click();
+    });
+  }
+
+      // Handle file input change
+      if (fileInput) {
+        fileInput.addEventListener('change', function() {
+          if (this.files && this.files.length > 0) {
+            handleFiles(this.files);
+          }
+        });
+      }
+
+      // Set up drag and drop events
+      if (dropZone) {
+        dropZone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+          dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          dropZone.classList.remove('dragover');
+          if (e.dataTransfer.files.length > 0) {
+            handleFiles(e.dataTransfer.files);
+          }
+        });
+
+        // Click anywhere on drop zone opens file selector
+        dropZone.addEventListener('click', (e) => {
+          if (e.target === dropZone || dropZone.contains(e.target)) {
+            fileInput.click();
+          }
+        });
+      }
+    }
+  });
+  // Keyboard accessibility: Enter or Space on drop zone triggers file input
+  dropZone.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      const dxfInput = document.getElementById('dxf-upload');
+      if (dxfInput) dxfInput.click();
+    }
+  });
+
+  // Set up file input change handler
+  const dxfInput = document.getElementById('dxf-upload');
+  if (dxfInput) {
+    dxfInput.addEventListener('change', () => {
+      if (dxfInput.files && dxfInput.files.length > 0) {
+        uploadFiles(dxfInput.files);
+      }
+    });
+  }
+
+  // Attach handler to cart upload button
+  const cartUploadMultiButton = document.getElementById('cartUploadMultiButton');
+  if (cartUploadMultiButton && dxfInput) {
+    cartUploadMultiButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      dxfInput.click();
+    });
+  }
+
+  // Set up other event listeners
+  const calcBtn = document.getElementById('calculateButton');
+  if (calcBtn) calcBtn.addEventListener('click', calculatePrices);
+  
+  const clearBtn = document.getElementById('clearButton');
+  if (clearBtn) clearBtn.addEventListener('click', clearCart);
+  
+  const buyBtn = document.getElementById('buyButton');
+  if (buyBtn) {
+    buyBtn.addEventListener('click', function() {
+      // Gather cart and quote info, then POST to /checkout
+      const cartItems = getCartItems();
+      if (!isCalculated) {
+        showPopup('Please calculate your quote before checking out.');
+        return;
+      }
+      fetch('/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          cart: cartItems, 
+          quote: { 
+            total_sell_price: parseFloat(
+              document.getElementById('total-price').textContent.replace(/[^\d.]/g, '')
+            ) 
+          } 
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success && data.order_id) {
+          // Redirect to checkout page (Stripe or summary)
+          window.location.href = `/checkout?order_id=${data.order_id}`;
+        } else {
+          showPopup('Checkout failed. Please try again.');
+        }
+      })
+      .catch(error => showPopup('Error during checkout: ' + error));
+    });
+  }
+
+  // Initial cart load
+  fetch('/cart_items', { timeout: 5000 })
+    .then(response => response.json())
+    .then(data => updateCartUI(data.items || [], true))
+    .catch(error => {
+      console.error('Error loading cart:', error);
+      updateCartUI([], true);
+    });
+
+  // Initial UI update
+  updateButtonVisibility(getCartItems());
+  
+  // Expose functions to global scope
+  window.removeItem = removeItem;
+  window.updateField = updateField;
+  window.closePopup = closePopup;
+  window.handleFiles = uploadFiles;
+  window.handleDrop = (e) => {
+    e.preventDefault();
+    uploadFiles(e.dataTransfer.files);
+  };
+
+  // Initialize drag-drop functionality
+  function setupDragDrop() {
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('dxf-upload');
+    
+    if (dropZone && fileInput) {
+      // Prevent default drag behaviors
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+      });
+
+      // Highlight drop zone when item is dragged over it
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+      });
+
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+      });
+
+      // Handle dropped files
+      dropZone.addEventListener('drop', handleDrop, false);
+    }
+  }
+  
+  // Initialize drag-drop when DOM is loaded
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupDragDrop);
+  } else {
+    setupDragDrop();
+  }
+});
+</script>
+
+<!-- Vite asset loading -->
+{% if config.DEBUG %}
+  <script type="module" src="http://localhost:3001/static/js/main.js"></script>
+{% else %}
+  <script type="module" src="{{ url_for('static', filename='dist/js/main.js') }}"></script>
+{% endif %}
+
+<!-- Additional scripts -->
+<script src="{{ url_for('static', filename='js/modals.js') }}"></script>
+</body>
+</html>

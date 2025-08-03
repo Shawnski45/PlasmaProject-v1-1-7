@@ -1,0 +1,297 @@
+<!-- templates/dev_index.html - v2025-04-07 -->
+<!-- Full v1-1-2 dev view for parser_app.py with preview rendering -->
+<!-- 2025-04-XX: Updated to use dynamic thickness list from parser_app.py -->
+<!-- 2025-04-05: Fixed Cost Breakdown to handle undefined fields and use parsed weights -->
+<!-- 2025-04-07: Added preview column and rendering for DXF visuals -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dev View - DXF Parser</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; }
+        .container { max-width: 1400px; margin: 0 auto; background-color: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        h1, h2 { color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; background-color: #fff; table-layout: auto; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; word-wrap: break-word; }
+        th { background-color: #007BFF; color: #fff; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        tr:hover { background-color: #e9ecef; }
+        .flash-success { color: green; }
+        .flash-error { color: red; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Dev View - DXF Parser</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <p class="flash-{{ category }}">{{ message }}</p>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <h2>Order Composition</h2>
+        {% if items %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Part Name</th>
+                    <th>Qty</th>
+                    <th>Material</th>
+                    <th>Thickness (in)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item.part_number }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.material }}</td>
+                    <td>{{ item.thickness }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        <h2>Parsing Data (Single Part)</h2>
+        {% if items %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Part Name</th>
+                    <th>Preview</th>
+                    <th>Cut Length (in)</th>
+                    <th>Pierce Count</th>
+                    <th>Lead-in/Out (in)</th>
+                    <th>Gross Boundaries</th>
+                    <th>Gross Area (sqin)</th>
+                    <th>Gross Weight (lb)</th>
+                    <th>Net Area (sqin)</th>
+                    <th>Net Weight (lb)</th>
+                    <th>Entity Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item.part_number }}</td>
+                    <td><canvas id="preview_{{ item.part_number }}" width="100" height="100"></canvas></td>
+                    <td>{{ item.length | round(2) }}</td>
+                    <td>{{ item.pierce_count }}</td>
+                    <td>{{ (item.pierce_count * 1.0) | round(2) }}</td>
+                    <td>[{{ item.gross_min_x | round(2) }}, {{ item.gross_min_y | round(2) }}] to [{{ item.gross_max_x | round(2) }}, {{ item.gross_max_y | round(2) }}]</td>
+                    <td>{{ item.gross_area_sqin | round(2) }}</td>
+                    <td>{{ item.gross_weight_lb | round(2) }}</td>
+                    <td>{{ item.net_area_sqin | round(2) }}</td>
+                    <td>{{ item.net_weight_lb | round(2) }}</td>
+                    <td>{{ item.entity_count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        {% if breakdown %}
+        <h2>Cost Breakdown</h2>
+        <table border="1">
+            <tr>
+                <th>Part Number</th><th>Qty</th><th>Material</th><th>Thick (in)</th><th>Net Wt/Part (lb)</th><th>Total Net Wt (lb)</th><th>Gross Wt/Part (lb)</th><th>Total Gross Wt (lb)</th><th>Net Matl Cost ($)</th><th>Kerf Cost ($)</th><th>Skel Cost ($)</th><th>Total Matl Cost ($)</th><th>Total Cut Len (in)</th><th>Total Cut Time (min)</th><th>Mach Cost ($)</th><th>Op Labor Cost ($)</th>
+            </tr>
+            {% for item in items %}
+            <tr>
+                <td>{{ item.part_number }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.material }}</td>
+                <td>{{ item.thickness }}</td>
+                <td>{{ item.net_weight_lb | round(2) if item.quantity > 0 else 0 }}</td>
+                <td>{{ (item.net_weight_lb * item.quantity) | round(2) if item.quantity > 0 else 0 }}</td>
+                <td>{{ item.gross_weight_lb | round(2) }}</td>
+                <td>{{ (item.gross_weight_lb * item.quantity) | round(2) }}</td>
+                <td>{{ breakdown.detailed_breakdown[loop.index0].material_cost | round(2) if breakdown.detailed_breakdown[loop.index0].material_cost is defined else 0 }}</td>
+                <td>{{ breakdown.detailed_breakdown[loop.index0].kerf_cost | round(2) if breakdown.detailed_breakdown[loop.index0].kerf_cost is defined else 0 }}</td>
+                <td>{{ breakdown.detailed_breakdown[loop.index0].skeleton_cost | round(2) if breakdown.detailed_breakdown[loop.index0].skeleton_cost is defined else 0 }}</td>
+                <td>{{ breakdown.detailed_breakdown[loop.index0].total_material_cost | round(2) if breakdown.detailed_breakdown[loop.index0].total_material_cost is defined else 0 }}</td>
+                <td>{{ breakdown.detailed_breakdown[loop.index0].total_cut_length | round(2) if breakdown.detailed_breakdown[loop.index0].total_cut_length is defined else 0 }}</td>
+                <td>{{ breakdown.detailed_breakdown[loop.index0].total_cut_time | round(2) if breakdown.detailed_breakdown[loop.index0].total_cut_time is defined else 0 }}</td>
+                <td>{{ breakdown.detailed_breakdown[loop.index0].machine_cost | round(2) if breakdown.detailed_breakdown[loop.index0].machine_cost is defined else 0 }}</td>
+                <td>{{ breakdown.detailed_breakdown[loop.index0].operator_labor_cost | round(2) if breakdown.detailed_breakdown[loop.index0].operator_labor_cost is defined else 0 }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <h2>Order Summary</h2>
+        <p>Total Cut Time: {{ breakdown.total_cut_time | round(2) }} min</p>
+        <p>Total Material Cost: ${{ breakdown.total_material_cost | round(2) }}</p>
+        <p>Total Material Used: {{ breakdown.total_material_used | round(2) }} lb</p>
+        <p>Total Kerf Cost: ${{ breakdown.total_kerf_cost | round(2) }}</p>
+        <p>Total Skeleton Cost: ${{ breakdown.total_skeleton_cost | round(2) }}</p>
+        <p>Total Machine Cost: ${{ breakdown.total_machine_cost | round(2) }}</p>
+        <p>Total Operator Labor Cost: ${{ breakdown.total_operator_labor_cost | round(2) }}</p>
+        <p>Total Indirect Labor Cost: ${{ breakdown.total_indirect_labor_cost | round(2) }}</p>
+        <p>Total Overhead Cost: ${{ breakdown.total_overhead_cost | round(2) }}</p>
+        <p>Subtotal: ${{ breakdown.subtotal | round(2) }}</p>
+        <p>Total Sell Price: ${{ breakdown.total_sell_price | round(2) }}</p>
+
+        <h2>Material Costs Analysis</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Material</th>
+                    <th>Thickness (in)</th>
+                    <th>Sq Ft Consumed</th>
+                    <th>Weight Consumed (lb)</th>
+                    <th>Plates Required</th>
+                    <th>Total Cost ($)</th>
+                    <th>Parts per Sheet</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mat in breakdown.material_analysis %}
+                <tr>
+                    <td>{{ mat.material }}</td>
+                    <td>{{ mat.thickness }}</td>
+                    <td>{{ mat.sqft_consumed | round(2) }}</td>
+                    <td>{{ mat.weight_consumed | round(2) }}</td>
+                    <td>{{ mat.plates_required }}</td>
+                    <td>{{ mat.total_cost | round(2) }}</td>
+                    <td>{{ mat.parts_per_sheet }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h2>Labor Cost Components</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Component</th>
+                    {% for detail in breakdown.detailed_breakdown %}
+                    <th>{{ detail.part_number }} ({{ detail.quantity }} units)</th>
+                    {% endfor %}
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Cutting Time (min)</td>
+                    {% for detail in breakdown.detailed_breakdown %}
+                    <td>{{ detail.total_cut_time | round(2) }}</td>
+                    {% endfor %}
+                    <td>{{ breakdown.total_cut_time | round(2) }}</td>
+                </tr>
+                <tr>
+                    <td>Operator Labor Cost ($)</td>
+                    {% for detail in breakdown.detailed_breakdown %}
+                    <td>{{ detail.operator_labor_cost | round(2) }}</td>
+                    {% endfor %}
+                    <td>{{ breakdown.total_operator_labor_cost | round(2) }}</td>
+                </tr>
+                <tr><td>Setup Time (min)</td><td colspan="{{ breakdown.detailed_breakdown|length }}">Shared</td><td>{{ breakdown.setup_time | round(2) }}</td></tr>
+                <tr><td>Changeover Time (min)</td><td colspan="{{ breakdown.detailed_breakdown|length }}">Shared</td><td>{{ breakdown.changeover_time | round(2) }}</td></tr>
+                <tr><td>Plate Change Time (min)</td><td colspan="{{ breakdown.detailed_breakdown|length }}">Shared</td><td>{{ breakdown.plate_change_time | round(2) }}</td></tr>
+                <tr><td>Cleanup Time (min)</td><td colspan="{{ breakdown.detailed_breakdown|length }}">Shared</td><td>{{ breakdown.cleanup_time | round(2) }}</td></tr>
+                <tr><td>Palletizing Time (min)</td><td colspan="{{ breakdown.detailed_breakdown|length }}">Shared</td><td>{{ breakdown.palletizing_time | round(2) }}</td></tr>
+                <tr><td>Total Labor Time (min)</td><td colspan="{{ breakdown.detailed_breakdown|length }}">Shared</td><td>{{ breakdown.total_labor_time | round(2) }}</td></tr>
+            </tbody>
+        </table>
+
+        <h2>Pricing Breakdown</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Part Number</th>
+                    <th>Quantity</th>
+                    <th>Subtotal Per Part ($)</th>
+                    <th>Sell Price Per Part ($)</th>
+                    <th>Total Sell Price ($)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in breakdown.detailed_breakdown %}
+                <tr>
+                    <td>{{ item.part_number }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.subtotal_per_part | round(2) }}</td>
+                    <td>{{ item.unit_price | round(2) }}</td>
+                    <td>{{ item.sell_price_per_part | round(2) }}</td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td colspan="4"><strong>Total Sell Price</strong></td>
+                    <td>{{ breakdown.total_sell_price | round(2) }}</td>
+                </tr>
+            </tbody>
+        </table>
+        {% endif %}
+
+        <!-- Preview rendering script -->
+        <script id="preview-data" type="application/json">
+            {
+                "previews": [
+                    {% for item in items %}
+                    {
+                        "id": "preview_{{ item.part_number }}",
+                        "data": {{ item.preview | safe }},  {# Critical: |safe ensures raw JSON rendering, fixing SyntaxError in renderPreviews() #}
+                        "minX": {{ item.gross_min_x }},
+                        "maxX": {{ item.gross_max_x }},
+                        "minY": {{ item.gross_min_y }},
+                        "maxY": {{ item.gross_max_y }}
+                    }{% if not loop.last %},{% endif %}
+                    {% endfor %}
+                ]
+            }
+        </script>
+        <script>
+            function renderPreviews() {
+                const previewElement = document.getElementById('preview-data');
+                if (!previewElement) return;
+
+                const previewObj = JSON.parse(previewElement.textContent);
+                const previews = previewObj.previews || [];
+                previews.forEach(preview => {
+                    const canvas = document.getElementById(preview.id);
+                    if (!canvas) return;
+                    const ctx = canvas.getContext('2d');
+                    const width = preview.maxX - preview.minX || 1;
+                    const height = preview.maxY - preview.minY || 1;
+                    const aspectRatio = width / height;
+                    const canvasSize = 80;
+                    let scale = aspectRatio > 1 ? canvasSize / width : canvasSize / height;
+                    const scaledWidth = width * scale;
+                    const scaledHeight = height * scale;
+                    const offsetX = (100 - scaledWidth) / 2;
+                    const offsetY = (100 - scaledHeight) / 2 + scaledHeight;
+                    ctx.translate(offsetX, offsetY);
+                    ctx.scale(scale, -scale);
+                    ctx.translate(-preview.minX, -preview.minY);
+                    ctx.strokeStyle = 'black';
+                    ctx.lineWidth = 1 / scale;
+                    preview.data.forEach(entity => {
+                        ctx.beginPath();
+                        if (entity.type === 'line') {
+                            ctx.moveTo(entity.start[0], entity.start[1]);
+                            ctx.lineTo(entity.end[0], entity.end[1]);
+                        } else if (entity.type === 'arc') {
+                            ctx.arc(entity.center[0], entity.center[1], entity.radius,
+                                    entity.start_angle * Math.PI / 180, entity.end_angle * Math.PI / 180);
+                        } else if (entity.type === 'circle') {
+                            ctx.arc(entity.center[0], entity.center[1], entity.radius, 0, 2 * Math.PI);
+                        }
+                        ctx.stroke();
+                    });
+                });
+            }
+
+            window.onload = function() {
+                renderPreviews();
+            };
+        </script>
+    </div>
+</body>
+</html>
